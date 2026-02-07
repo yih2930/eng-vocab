@@ -546,6 +546,6 @@ const wordData = {
         { s: "提供する", j: "〜を供給・用意する", e: "Provide", d: ["Prove", "Publish", "Pull"], p: "Provide information." },
         { s: "出版する", j: "〜を発行・公表する", e: "Publish", d: ["Prove", "Provide", "Pull"], p: "Publish a book." },
         { s: "引く", j: "〜を引く", e: "Pull", d: ["Prove", "Provide", "Publish"], p: "Pull the door." }
-    ]
+    ],
 };
 
