@@ -9,25 +9,30 @@
         :root { --primary: #4A90E2; --success: #47C78E; --error: #FF6B6B; --bg: #F0F2F5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
         .container { background: white; width: 100%; max-width: 500px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); padding: 20px; min-height: 90vh; display: flex; flex-direction: column; box-sizing: border-box; }
-        h2 { text-align: center; color: #333; font-size: 1.2rem; }
+        h2 { text-align: center; color: #333; font-size: 1.2rem; margin-top: 0; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .chapter-btn { padding: 15px; border: 1px solid #DDD; border-radius: 12px; background: white; text-align: left; cursor: pointer; position: relative; }
         .chapter-btn .date { font-size: 0.7rem; color: #888; display: block; margin-top: 5px; }
         .chapter-btn.done { border-color: var(--success); background: #F6FFF9; }
-        .review-btn { background: #666; color: white; padding: 15px; border-radius: 12px; text-align: center; margin-top: 20px; font-weight: bold; width: 100%; border: none; cursor: pointer; }
+        .review-btn { background: #666; color: white; padding: 15px; border-radius: 12px; text-align: center; margin-top: 20px; font-weight: bold; width: 100%; border: none; cursor: pointer; font-size: 1rem; }
         
-        .quiz-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #888; margin-bottom: 15px; }
-        .jp { font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; color: #333; min-height: 3rem; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #888; margin-bottom: 15px; background: #F8F9FA; padding: 8px; border-radius: 8px; }
+        .quit-btn { background: #EEE; border: none; border-radius: 4px; font-size: 0.7rem; padding: 4px 8px; color: #666; cursor: pointer; }
+        
+        .jp { font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; color: #333; min-height: 3rem; line-height: 1.4; }
         .options { display: grid; gap: 10px; }
-        .opt-btn { padding: 14px; border: 2px solid #EEE; border-radius: 12px; background: white; font-size: 1rem; text-align: left; cursor: pointer; transition: 0.2s; }
+        .opt-btn { padding: 14px; border: 2px solid #EEE; border-radius: 12px; background: white; font-size: 1.1rem; text-align: left; cursor: pointer; transition: 0.2s; color: #444; }
+        
         .feedback { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #F9F9F9; border: 1px solid #EEE; }
         .feedback.show { display: block; }
-        .phrase { font-style: italic; margin: 10px 0; font-size: 1.1rem; color: #000; line-height: 1.4; }
-        .voice-btn { background: #666; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; margin-bottom: 10px; }
+        .phrase { font-style: italic; margin: 10px 0; font-size: 1.15rem; color: #000; line-height: 1.4; border-left: 3px solid var(--primary); padding-left: 10px; }
+        .voice-btn { background: #666; color: white; border: none; padding: 12px 20px; border-radius: 25px; cursor: pointer; margin-bottom: 15px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .next-btn { width: 100%; padding: 16px; background: var(--success); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
         
         .hidden { display: none; }
         .result-screen { text-align: center; padding: 20px; }
-        .score { font-size: 3rem; font-weight: bold; color: var(--primary); }
+        .score { font-size: 3.5rem; font-weight: bold; color: var(--primary); margin: 20px 0; }
+        .home-btn { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -40,24 +45,26 @@
 
     <div id="quiz-screen" class="hidden">
         <div class="quiz-header">
-            <span id="current-info"></span>
-            <span id="progress-text"></span>
+            <div><span id="current-info"></span> (<span id="progress-text"></span>)</div>
+            <button class="quit-btn" onclick="confirmQuit()">中止して戻る</button>
         </div>
-        <div id="sit" style="color:var(--primary); font-weight:bold; font-size:0.85rem; margin-bottom:5px;"></div>
+        <div id="sit" style="color:var(--primary); font-weight:bold; font-size:0.85rem; margin-bottom:8px;"></div>
         <div id="jp" class="jp"></div>
         <div id="opts" class="options"></div>
+        
         <div id="fb" class="feedback">
-            <div id="res" style="font-weight:bold; font-size:1.1rem; margin-bottom:8px;"></div>
+            <div id="res" style="font-weight:bold; font-size:1.2rem; margin-bottom:10px;"></div>
             <div id="phrase" class="phrase"></div>
             <button class="voice-btn" onclick="speakCurrent()">🔊 発音を聞く</button>
-            <button onclick="nextQuestion()" style="width:100%; padding:15px; background:var(--success); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1rem; margin-top:10px;">次の問題へ</button>
+            <button class="next-btn" onclick="nextQuestion()">次の問題へ</button>
         </div>
     </div>
 
     <div id="result-screen" class="result-screen hidden">
-        <h2>Chapter クリア！</h2>
+        <h2 id="result-title">Chapter クリア！</h2>
         <div class="score" id="final-score">0 / 0</div>
-        <button onclick="showMenu()" style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold; margin-top:20px; cursor:pointer;">メニューに戻る</button>
+        <p id="result-msg" style="color:#666;"></p>
+        <button class="home-btn" onclick="showMenu()">メニューに戻る</button>
     </div>
 </div>
 
@@ -76,11 +83,16 @@ function showMenu() {
     
     const list = document.getElementById('chapter-list');
     list.innerHTML = '';
-    // 全25章のボタンを作成
+    
+    // 章ごとのデータが存在するか確認しながら25章分作成
     for (let i = 1; i <= 25; i++) {
         const btn = document.createElement('div');
         const isDone = history[i];
+        const hasData = (typeof allChapters !== 'undefined' && allChapters[i]);
+        
         btn.className = `chapter-btn ${isDone ? 'done' : ''}`;
+        if (!hasData) btn.style.opacity = '0.5';
+        
         btn.innerHTML = `第${i}章 ${isDone ? '<span class="date">済: ' + isDone + '</span>' : ''}`;
         btn.onclick = () => startChapter(i);
         list.appendChild(btn);
@@ -92,8 +104,8 @@ function showMenu() {
 }
 
 function startChapter(chapterNum) {
-    if(!allChapters[chapterNum]) {
-        alert("第" + chapterNum + "章のデータはまだ追加されていません！");
+    if (typeof allChapters === 'undefined' || !allChapters[chapterNum]) {
+        alert("第" + chapterNum + "章のデータはまだ準備中です！");
         return;
     }
     currentChapter = chapterNum;
@@ -112,12 +124,13 @@ function initQuiz() {
     score = 0;
     document.getElementById('menu-screen').classList.add('hidden');
     document.getElementById('quiz-screen').classList.remove('hidden');
+    document.getElementById('result-screen').classList.add('hidden');
     loadQuestion();
 }
 
 function loadQuestion() {
     const q = quizPool[currentIndex];
-    document.getElementById('current-info').innerText = currentChapter === '復習' ? '復習モード' : `Chapter ${currentChapter}`;
+    document.getElementById('current-info').innerText = currentChapter === '復習' ? '復習モード' : `第${currentChapter}章`;
     document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${quizPool.length}`;
     document.getElementById('sit').innerText = q.s;
     document.getElementById('jp').innerText = q.j;
@@ -132,33 +145,48 @@ function loadQuestion() {
         b.onclick = () => checkAnswer(o, q.e, b);
         opts.appendChild(b);
     });
+    // スクロールを一番上に戻す
+    window.scrollTo(0,0);
 }
 
 function checkAnswer(selected, correct, btn) {
     const isCorrect = selected === correct;
     const q = quizPool[currentIndex];
     
-    // 全ボタン無効化
+    // 他の全ボタンを無効化し、正解を緑枠にする
     document.querySelectorAll('.opt-btn').forEach(b => {
         b.onclick = null;
-        if(b.innerText === correct) b.style.borderColor = 'var(--success)';
+        if(b.innerText === correct) {
+            b.style.borderColor = 'var(--success)';
+            b.style.borderWidth = '3px';
+        }
     });
 
     if (isCorrect) {
         score++;
         btn.style.backgroundColor = '#F6FFF9';
+        // 正解した単語を復習リストから除外
         mistakes = mistakes.filter(m => m.e !== q.e);
     } else {
         btn.style.borderColor = 'var(--error)';
         btn.style.backgroundColor = '#FFF6F6';
-        if (!mistakes.some(m => m.e === q.e)) mistakes.push(q);
+        // 間違えた単語を復習リストに追加
+        if (!mistakes.some(m => m.e === q.e)) {
+            mistakes.push(q);
+        }
     }
     localStorage.setItem('mistakes', JSON.stringify(mistakes));
 
-    document.getElementById('res').innerText = isCorrect ? "⭕ 正解！" : "❌ 不正解";
+    // フィードバック表示
+    document.getElementById('res').innerText = isCorrect ? "⭕ 正解！" : "❌ 不正解...";
     document.getElementById('res').style.color = isCorrect ? 'var(--success)' : 'var(--error)';
     document.getElementById('phrase').innerText = q.p;
     document.getElementById('fb').classList.add('show');
+    
+    // 自動スクロールで解説を見やすくする
+    setTimeout(() => {
+        document.getElementById('fb').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
 }
 
 function nextQuestion() {
@@ -175,20 +203,35 @@ function finishChapter() {
     document.getElementById('result-screen').classList.remove('hidden');
     document.getElementById('final-score').innerText = `${score} / ${quizPool.length}`;
     
-    if (currentChapter !== '復習' && score === quizPool.length) {
-        const today = new Date().toLocaleDateString('ja-JP');
-        history[currentChapter] = today;
-        localStorage.setItem('history', JSON.stringify(history));
+    const msg = document.getElementById('result-msg');
+    if (score === quizPool.length) {
+        msg.innerText = "全問正解！素晴らしいです！";
+        // 全問正解した時のみ、章選択画面に日付を記録
+        if (currentChapter !== '復習') {
+            const today = new Date().toLocaleDateString('ja-JP');
+            history[currentChapter] = today;
+            localStorage.setItem('history', JSON.stringify(history));
+        }
+    } else {
+        msg.innerText = "間違えた問題は復習モードで解き直せます。";
+    }
+}
+
+function confirmQuit() {
+    if (confirm("メニューに戻りますか？\n（現在の進捗は保存されません）")) {
+        showMenu();
     }
 }
 
 function speakCurrent() {
+    if (!quizPool[currentIndex]) return;
     const u = new SpeechSynthesisUtterance(quizPool[currentIndex].p);
     u.lang = 'en-US'; u.rate = 0.9;
     speechSynthesis.speak(u);
 }
 
-showMenu();
+// 起動時にメニューを表示
+window.onload = showMenu;
 </script>
 </body>
 </html>
