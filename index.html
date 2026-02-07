@@ -19,7 +19,7 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: center; /* 画面全体を中央寄せ */
             min-height: 100vh;
         }
         .header {
@@ -31,6 +31,12 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             margin-bottom: 2rem;
         }
+        #main-screen {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* メインコンテンツを中央寄せ */
+        }
         .container {
             width: 90%;
             max-width: 800px;
@@ -38,6 +44,7 @@
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 15px;
             padding-bottom: 3rem;
+            justify-content: center; /* グリッド自体を中央寄せ */
         }
         .chapter-card {
             background: var(--card);
@@ -65,6 +72,7 @@
             background: var(--bg);
             flex-direction: column;
             align-items: center;
+            justify-content: center; /* 上下左右中央に配置 */
             padding: 20px;
             box-sizing: border-box;
             z-index: 100;
@@ -77,7 +85,6 @@
             border-radius: 20px;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
             text-align: center;
-            margin-top: 20px;
         }
         .word-display { font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; color: var(--primary); }
         .sentence-display { font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; min-height: 1.2em; line-height: 1.4; }
@@ -100,7 +107,7 @@
         .correct { background: #4ade80 !important; color: white !important; border-color: #22c55e !important; }
         .wrong { background: #f87171 !important; color: white !important; border-color: #ef4444 !important; }
         
-        .nav-btns { margin-top: 1rem; width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-btns { margin-bottom: 1rem; width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; }
         .back-btn { padding: 0.6rem 1.2rem; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
@@ -122,8 +129,7 @@
         <div class="quiz-container">
             <div class="word-display" id="q-word">Word</div>
             <div class="sentence-display" id="q-sentence">Example sentence here...</div>
-            <div class="options-grid" id="options">
-                </div>
+            <div class="options-grid" id="options"></div>
         </div>
     </div>
 
@@ -132,34 +138,31 @@
         let currentIndex = 0;
         let score = 0;
 
-        // ページ読み込み時にチャプターリストを生成
+        // チャプターリストの生成（1から開始）
         window.onload = function() {
             const chapterList = document.getElementById('chapter-list');
-            chapterList.innerHTML = ''; // リセット
-            
             for (let i = 1; i <= 25; i++) {
                 const card = document.createElement('div');
                 card.className = 'chapter-card';
                 card.onclick = () => startChapter(i);
-                card.innerHTML = `
-                    <h3>Chapter ${i}</h3>
-                    <p>20 Words</p>
-                `;
+                card.innerHTML = `<h3>Chapter ${i}</h3><p>20 Words</p>`;
                 chapterList.appendChild(card);
             }
         };
 
         function startChapter(id) {
-            // data.js の中の wordData[id] を取得
-            if (typeof wordData !== 'undefined' && wordData[id]) {
-                currentChapterWords = wordData[id];
+            // data.js の変数が wordData か data かを自動判別
+            const allData = (typeof wordData !== 'undefined') ? wordData : (typeof data !== 'undefined' ? data : null);
+            
+            if (allData && allData[id]) {
+                currentChapterWords = allData[id];
                 currentIndex = 0;
                 score = 0;
                 document.getElementById('main-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'flex';
                 showQuestion();
             } else {
-                alert('データが見つかりませんでした。data.jsが正しく読み込まれているか確認してください。');
+                alert('エラー：英単語データが見つかりません。data.jsの最初の行が const wordData = { か const data = { で始まっているか確認してください。');
             }
         }
 
@@ -171,8 +174,6 @@
             
             const optionsDiv = document.getElementById('options');
             optionsDiv.innerHTML = '';
-            
-            // 正解(s)とダミー(d)を混ぜてシャッフル
             const choices = [q.s, ...q.d].sort(() => Math.random() - 0.5);
             
             choices.forEach(choice => {
