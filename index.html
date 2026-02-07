@@ -17,26 +17,16 @@
         }
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            background-color: var(--bg); color: var(--text); margin: 0;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
         .header {
-            background: linear-gradient(135deg, #6366f1, #a855f7);
-            color: white;
-            width: 100%;
-            padding: 2rem 0;
-            text-align: center;
-            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #6366f1, #a855f7); color: white;
+            width: 100%; padding: 2rem 0; text-align: center; margin-bottom: 2rem;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         #main-screen { width: 100%; display: flex; flex-direction: column; align-items: center; }
         .container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 3rem; }
-        
         .chapter-card {
             background: var(--card); padding: 1.2rem; border-radius: 12px; text-align: center;
             cursor: pointer; border: 2px solid #e2e8f0; transition: 0.2s;
@@ -72,29 +62,22 @@
         }
         .exp-main { margin-bottom: 15px; border-bottom: 1px solid #c7d2fe; padding-bottom: 10px; }
         .exp-title { font-weight: bold; color: var(--primary); font-size: 1.3rem; }
-        
         .sentence-row { display: flex; align-items: flex-start; gap: 10px; }
-        .full-sentence-text { font-weight: 500; font-size: 1.05rem; line-height: 1.4; flex: 1; }
+        .full-sentence-text { font-weight: 500; font-size: 1.05rem; flex: 1; }
         
-        /* 音声ボタンを大きく押しやすく */
         .voice-btn {
             background: var(--primary); color: white; border: none;
             width: 50px; height: 50px; border-radius: 50%; cursor: pointer;
             display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
             flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            -webkit-tap-highlight-color: transparent;
         }
-        .voice-btn:active { transform: scale(0.9); background: #4f46e5; }
 
         .footer-nav { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 1rem; }
         .next-btn { 
-            display: none; width: 100%; padding: 1rem; background: var(--primary); 
+            display: none; width: 100%; padding: 1.2rem; background: var(--primary); 
             color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
         }
-        .prev-btn {
-            width: 100%; padding: 0.8rem; background: #cbd5e1; color: #475569;
-            border: none; border-radius: 12px; font-size: 0.9rem; cursor: pointer;
-        }
+        .prev-btn { width: 100%; padding: 0.8rem; background: #cbd5e1; color: #475569; border: none; border-radius: 12px; }
         .back-home { margin-bottom: 1rem; color: #64748b; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
@@ -119,7 +102,7 @@
                     <div class="exp-title">正解：<span id="exp-correct-word"></span></div>
                     <div id="exp-meaning" style="font-weight: bold;"></div>
                 </div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">例文：</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">例文 (音声):</div>
                 <div class="sentence-row">
                     <div id="exp-full-sentence" class="full-sentence-text"></div>
                     <button class="voice-btn" onclick="playVoice()" aria-label="再生">🔊</button>
@@ -137,25 +120,38 @@
         let currentWords = [];
         let currentIndex = 0;
         let score = 0;
+        let selectedVoice = null;
 
-        // スマホ用：音声エンジンの準備（アンロック）
+        // 英語の声を厳選する
+        function setVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            // 1. GoogleのUS英語を最優先 (Pixelに最適)
+            // 2. なければAppleのSamanthaなど (iPhone用)
+            // 3. なければとにかく en-US
+            selectedVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+                            voices.find(v => v.lang === 'en-US' && v.name.includes('Samantha')) ||
+                            voices.find(v => v.lang === 'en-US') ||
+                            voices.find(v => v.lang.startsWith('en'));
+        }
+
+        // ブラウザが声を読み込んだらセット
+        window.speechSynthesis.onvoiceschanged = setVoice;
+
         function unlockAudio() {
+            setVoice();
             const uttr = new SpeechSynthesisUtterance("");
-            uttr.volume = 0; // 無音
             window.speechSynthesis.speak(uttr);
         }
 
         window.onload = function() {
+            setVoice();
             const list = document.getElementById('chapter-list');
-            
-            // ランダムボタン
             const randomCard = document.createElement('div');
             randomCard.className = 'chapter-card random-card';
             randomCard.onclick = () => { unlockAudio(); startRandomMode(); };
             randomCard.innerHTML = `<h3>🔥 ランダム特訓</h3><p>全500語から20問抽出</p>`;
             list.appendChild(randomCard);
 
-            // 通常チャプター
             if (typeof wordData !== 'undefined') {
                 for (let i = 1; i <= 25; i++) {
                     const card = document.createElement('div');
@@ -224,13 +220,14 @@
         function playVoice() {
             const text = currentWords[currentIndex].p;
             const uttr = new SpeechSynthesisUtterance(text);
+            
+            if (selectedVoice) {
+                uttr.voice = selectedVoice;
+            }
             uttr.lang = 'en-US';
             uttr.rate = 0.9;
             
-            // iPhone/Android対策：再生中のものを止めてから、確実に新規作成して再生
             window.speechSynthesis.cancel();
-            
-            // 少しだけ遅延させるとスマホでの成功率が上がります
             setTimeout(() => {
                 window.speechSynthesis.speak(uttr);
             }, 50);
