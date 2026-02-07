@@ -1,4 +1,4 @@
-const allChapters = {
+const wordData = {
     1: [
         { s: "時間をずらしたい時", j: "〜を延期する", e: "Postpone", d: ["Cancel", "Hurry", "Avoid"], p: "Can we postpone the meeting?" },
         { s: "日程を組み直す時", j: "〜の予定を変更する", e: "Reschedule", d: ["Confirm", "Repeat", "Reduce"], p: "I need to reschedule our appointment." },
