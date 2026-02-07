@@ -1,0 +1,47 @@
+// --- data.js (ここを更新するだけで単語が増えます) ---
+const allChapters = {
+    1: [
+        { s: "時間をずらしたい時", j: "〜を延期する", e: "Postpone", d: ["Cancel", "Hurry", "Avoid"], p: "Can we postpone the meeting?" },
+        { s: "日程を組み直す時", j: "〜の予定を変更する", e: "Reschedule", d: ["Confirm", "Repeat", "Reduce"], p: "I need to reschedule our appointment." },
+        { s: "忙しい時", j: "手が離せない", e: "Be tied up", d: ["Be free", "Be ready", "Be late"], p: "I'm tied up at the moment." },
+        { s: "人を迎えに行く時", j: "（人を）迎えに行く", e: "Pick up", d: ["Drop off", "Look for", "Take out"], p: "I'll pick you up at 7." },
+        { s: "情報を調べる時", j: "（辞書等で）調べる", e: "Look up", d: ["Look at", "Look for", "Look after"], p: "Let me look up the word." },
+        { s: "近況を教える時", j: "〜を更新する", e: "Update", d: ["Upload", "Upgrade", "Upsize"], p: "I'll update you on the project." },
+        { s: "対処できると言う時", j: "〜を扱う、対処する", e: "Handle", d: ["Hold", "Help", "Hear"], p: "I can handle this situation." },
+        { s: "意味をはっきりさせたい時", j: "〜を明確にする", e: "Clarify", d: ["Classify", "Clean", "Close"], p: "Could you clarify that point?" },
+        { s: "招待などを受ける時", j: "〜を受け入れる", e: "Accept", d: ["Refuse", "Expect", "Access"], p: "I accept your invitation." },
+        { s: "事実を確かめる時", j: "〜を確認する", e: "Confirm", d: ["Conform", "Confuse", "Conflict"], p: "Let me confirm the details." },
+        { s: "連絡を取り合いたい時", j: "連絡を保つ", e: "Keep in touch", d: ["Take a look", "Stay away", "Get back"], p: "Let's keep in touch." },
+        { s: "理由を話す時", j: "〜を説明する", e: "Explain", d: ["Explore", "Express", "Expect"], p: "Let me explain why." },
+        { s: "賛成する時", j: "〜に同意する", e: "Agree", d: ["Deny", "Offer", "Apply"], p: "I agree with you." },
+        { s: "仲間に加わる時", j: "〜に参加する", e: "Join", d: ["Enjoy", "Job", "Joke"], p: "Would you like to join us?" },
+        { s: "書類を出す時", j: "〜を提出する", e: "Submit", d: ["Subject", "Subscribe", "Sublet"], p: "Please submit the report." },
+        { s: "解決策を考える時", j: "（考えて）解決する", e: "Figure out", d: ["Fill out", "Find out", "Look for"], p: "We need to figure out a way." },
+        { s: "検討をお願いする時", j: "〜を検討する", e: "Consider", d: ["Contact", "Continue", "Contain"], p: "Please consider our offer." },
+        { s: "準備中の時", j: "〜を準備する", e: "Prepare", d: ["Repair", "Compare", "Prevent"], p: "I'm preparing for it." },
+        { s: "確認作業をする時", j: "〜をチェックする", e: "Check", d: ["Choose", "Change", "Charge"], p: "Let me check the list." },
+        { s: "ついでに寄る時", j: "（場所へ）立ち寄る", e: "Stop by", d: ["Stop up", "Stop off", "Stop over"], p: "I'll stop by your office." }
+    ],
+    2: [
+        { s: "意見を言う時", j: "〜に言及する", e: "Mention", d: ["Maintain", "Manage", "Measure"], p: "He mentioned the plan." },
+        { s: "会議を開く時", j: "〜を開催する", e: "Hold", d: ["Help", "Hope", "Halt"], p: "We will hold a meeting." },
+        { s: "期待している時", j: "〜を期待する", e: "Expect", d: ["Except", "Expert", "Export"], p: "I expect a good result." },
+        { s: "必要なものがある時", j: "〜を必要とする", e: "Require", d: ["Request", "Retire", "Repair"], p: "This requires patience." },
+        { s: "申し込む時", j: "〜に申し込む", e: "Apply", d: ["Approve", "Appoint", "Appear"], p: "I want to apply for the job." },
+        { s: "提案する時", j: "〜を提案する", e: "Suggest", d: ["Support", "Suppose", "Suffer"], p: "I suggest we take a break." },
+        { s: "手配する時", j: "〜を手配する", e: "Arrange", d: ["Arrive", "Arrest", "Argue"], p: "I'll arrange the flight." },
+        { s: "避けるべき時", j: "〜を避ける", e: "Avoid", d: ["Afford", "Advice", "Admit"], p: "Avoid heavy traffic." },
+        { s: "減らしたい時", j: "〜を減らす", e: "Reduce", d: ["Refuse", "Recycle", "Remove"], p: "We should reduce costs." },
+        { s: "改善したい時", j: "〜を改善する", e: "Improve", d: ["Import", "Impress", "Imply"], p: "I want to improve my English." },
+        { s: "何かを終える時", j: "〜を完了する", e: "Complete", d: ["Compare", "Compete", "Complex"], p: "The project is complete." },
+        { s: "準備ができている時", j: "〜が利用できる", e: "Available", d: ["Average", "Avoidable", "Assistant"], p: "I'm available tomorrow." },
+        { s: "提供したい時", j: "〜を提供する", e: "Provide", d: ["Prevent", "Promote", "Protect"], p: "We provide help." },
+        { s: "解決策がある時", j: "〜を解決する", e: "Solve", d: ["Sold", "Soft", "Sole"], p: "We can solve this." },
+        { s: "誰かを助ける時", j: "〜を支援する", e: "Support", d: ["Suppose", "Surprise", "Supply"], p: "Thanks for your support." },
+        { s: "意見を聞く時", j: "〜に同意する", e: "Agree", d: ["Argue", "Accept", "Apply"], p: "I agree with you." },
+        { s: "計画を立てる時", j: "〜を決定する", e: "Decide", d: ["Divide", "Describe", "Detail"], p: "I'll decide later." },
+        { s: "目標がある時", j: "達成する", e: "Achieve", d: ["Archive", "Active", "Advance"], p: "You can achieve it." },
+        { s: "勧めたい時", j: "〜を推薦する", e: "Recommend", d: ["Record", "Recall", "Remind"], p: "I recommend this book." },
+        { s: "頼み事をする時", j: "〜を要求する", e: "Request", d: ["Respect", "Refuse", "Repeat"], p: "I'll request a meeting." }
+    ]
+};
