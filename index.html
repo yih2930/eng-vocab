@@ -66,7 +66,6 @@
         .correct { background: var(--success) !important; color: white !important; }
         .wrong { background: var(--error) !important; color: white !important; }
 
-        /* 解説エリア */
         #explanation {
             display: none; width: 100%; background: #e0e7ff; padding: 1.5rem;
             border-radius: 15px; margin-top: 1.5rem; text-align: left; box-sizing: border-box;
@@ -74,17 +73,18 @@
         .exp-main { margin-bottom: 15px; border-bottom: 1px solid #c7d2fe; padding-bottom: 10px; }
         .exp-title { font-weight: bold; color: var(--primary); font-size: 1.3rem; }
         
-        /* 例文と音声ボタンの横並び */
         .sentence-row { display: flex; align-items: flex-start; gap: 10px; }
         .full-sentence-text { font-weight: 500; font-size: 1.05rem; line-height: 1.4; flex: 1; }
         
+        /* 音声ボタンを大きく押しやすく */
         .voice-btn {
             background: var(--primary); color: white; border: none;
-            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-            flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 50px; height: 50px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+            flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent;
         }
-        .voice-btn:active { transform: scale(0.9); }
+        .voice-btn:active { transform: scale(0.9); background: #4f46e5; }
 
         .footer-nav { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 1rem; }
         .next-btn { 
@@ -119,10 +119,10 @@
                     <div class="exp-title">正解：<span id="exp-correct-word"></span></div>
                     <div id="exp-meaning" style="font-weight: bold;"></div>
                 </div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">例文 (タップで再生):</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">例文：</div>
                 <div class="sentence-row">
                     <div id="exp-full-sentence" class="full-sentence-text"></div>
-                    <button class="voice-btn" onclick="playVoice()" title="音声を再生">🔊</button>
+                    <button class="voice-btn" onclick="playVoice()" aria-label="再生">🔊</button>
                 </div>
             </div>
         </div>
@@ -138,8 +138,113 @@
         let currentIndex = 0;
         let score = 0;
 
+        // スマホ用：音声エンジンの準備（アンロック）
+        function unlockAudio() {
+            const uttr = new SpeechSynthesisUtterance("");
+            uttr.volume = 0; // 無音
+            window.speechSynthesis.speak(uttr);
+        }
+
         window.onload = function() {
             const list = document.getElementById('chapter-list');
+            
+            // ランダムボタン
             const randomCard = document.createElement('div');
             randomCard.className = 'chapter-card random-card';
-            random
+            randomCard.onclick = () => { unlockAudio(); startRandomMode(); };
+            randomCard.innerHTML = `<h3>🔥 ランダム特訓</h3><p>全500語から20問抽出</p>`;
+            list.appendChild(randomCard);
+
+            // 通常チャプター
+            if (typeof wordData !== 'undefined') {
+                for (let i = 1; i <= 25; i++) {
+                    const card = document.createElement('div');
+                    card.className = 'chapter-card';
+                    card.onclick = () => { unlockAudio(); startChapter(i); };
+                    card.innerHTML = `<h3>Chapter ${i}</h3><p>20 Words</p>`;
+                    list.appendChild(card);
+                }
+            }
+        };
+
+        function startRandomMode() {
+            let all = [];
+            for (let i in wordData) all = all.concat(wordData[i]);
+            currentWords = all.sort(() => Math.random() - 0.5).slice(0, 20);
+            initGame();
+        }
+
+        function startChapter(id) {
+            currentWords = wordData[id];
+            initGame();
+        }
+
+        function initGame() {
+            currentIndex = 0; score = 0;
+            document.getElementById('main-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = currentWords[currentIndex];
+            document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${currentWords.length}`;
+            document.getElementById('q-word').innerText = q.s; 
+            const masked = q.p.replace(new RegExp(q.e, 'gi'), " □□□ ");
+            document.getElementById('q-sentence').innerText = masked;
+
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('prev-btn').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+            
+            const optDiv = document.getElementById('options');
+            optDiv.innerHTML = '';
+            const choices = [q.e, ...q.d].sort(() => Math.random() - 0.5);
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = choice;
+                btn.onclick = () => {
+                    const btns = document.querySelectorAll('.option-btn');
+                    btns.forEach(b => b.disabled = true);
+                    if (choice === q.e) { btn.classList.add('correct'); score++; }
+                    else { btn.classList.add('wrong'); btns.forEach(b => { if(b.innerText === q.e) b.classList.add('correct'); }); }
+                    
+                    document.getElementById('exp-correct-word').innerText = q.e;
+                    document.getElementById('exp-meaning').innerText = q.j;
+                    document.getElementById('exp-full-sentence').innerText = q.p;
+                    document.getElementById('explanation').style.display = 'block';
+                    document.getElementById('next-btn').style.display = 'block';
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                };
+                optDiv.appendChild(btn);
+            });
+        }
+
+        function playVoice() {
+            const text = currentWords[currentIndex].p;
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'en-US';
+            uttr.rate = 0.9;
+            
+            // iPhone/Android対策：再生中のものを止めてから、確実に新規作成して再生
+            window.speechSynthesis.cancel();
+            
+            // 少しだけ遅延させるとスマホでの成功率が上がります
+            setTimeout(() => {
+                window.speechSynthesis.speak(uttr);
+            }, 50);
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < currentWords.length) showQuestion();
+            else { alert(`クリア！ スコア: ${score} / ${currentWords.length}`); location.reload(); }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) { currentIndex--; showQuestion(); }
+        }
+    </script>
+</body>
+</html>
