@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英単語ボキャブラ500</title>
+    <style>
+        :root { --primary: #4A90E2; --success: #47C78E; --error: #FF6B6B; --bg: #F0F2F5; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .container { background: white; width: 100%; max-width: 500px; border-radius: 20px; shadow: 0 8px 30px rgba(0,0,0,0.1); padding: 20px; min-height: 90vh; display: flex; flex-direction: column; }
+        h2 { text-align: center; color: #333; font-size: 1.2rem; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .chapter-btn { padding: 15px; border: 1px solid #DDD; border-radius: 12px; background: white; text-align: left; cursor: pointer; position: relative; }
+        .chapter-btn .date { font-size: 0.7rem; color: #888; display: block; margin-top: 5px; }
+        .chapter-btn.done { border-color: var(--success); background: #F6FFF9; }
+        .review-btn { grid-column: span 2; background: #666; color: white; padding: 15px; border-radius: 12px; text-align: center; margin-top: 10px; font-weight: bold; }
+        
+        .quiz-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #888; margin-bottom: 15px; }
+        .jp { font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; color: #333; min-height: 3rem; }
+        .options { display: grid; gap: 10px; }
+        .opt-btn { padding: 14px; border: 2px solid #EEE; border-radius: 12px; background: white; font-size: 1rem; text-align: left; cursor: pointer; }
+        .feedback { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #F9F9F9; }
+        .phrase { font-style: italic; margin: 10px 0; font-size: 1.1rem; color: #000; }
+        .voice-btn { background: #666; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; }
+        
+        .hidden { display: none; }
+        .result-screen { text-align: center; padding: 20px; }
+        .score { font-size: 3rem; font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="menu-screen">
+        <h2>章を選択してください</h2>
+        <div id="chapter-list" class="menu-grid"></div>
+        <div id="review-section"></div>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="quiz-header">
+            <span id="current-info">Chapter 1</span>
+            <span id="progress-text">1 / 20</span>
+        </div>
+        <div id="sit" style="color:var(--primary); font-weight:bold; font-size:0.8rem; margin-bottom:5px;"></div>
+        <div id="jp" class="jp"></div>
+        <div id="opts" class="options"></div>
+        <div id="fb" class="feedback">
+            <div id="res" style="font-weight:bold; margin-bottom:5px;"></div>
+            <div id="phrase" class="phrase"></div>
+            <button class="voice-btn" onclick="speakCurrent()">🔊 発音を聞く</button>
+            <button onclick="nextQuestion()" style="margin-top:15px; width:100%; padding:12px; background:var(--success); color:white; border:none; border-radius:8px; font-weight:bold;">次へ</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="result-screen hidden">
+        <h2>Chapter クリア！</h2>
+        <div class="score" id="final-score">0 / 20</div>
+        <p id="score-comment"></p>
+        <button onclick="showMenu()" style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold; margin-top:20px;">メニューに戻る</button>
+    </div>
+</div>
+
+<script>
+// --- 単語データ (20語1セット。ここに500語まで追加可能) ---
+const allChapters = {
+    1: [
+        { s: "時間をずらしたい時", j: "〜を延期する", e: "Postpone", d: ["Cancel", "Hurry", "Avoid"], p: "Can we postpone the meeting?" },
+        { s: "日程を組み直す時", j: "〜の予定を変更する", e: "Reschedule", d: ["Confirm", "Repeat", "Reduce"], p: "I need to reschedule our appointment." },
+        { s: "忙しい時", j: "手が離せない", e: "Be tied up", d: ["Be free", "Be ready", "Be late"], p: "I'm tied up at the moment." },
+        { s: "誰かを迎えに行く時", j: "（人を）迎えに行く", e: "Pick up", d: ["Drop off", "Look for", "Take out"], p: "I'll pick you up at 7." },
+        // ... (ここに1章分20語続く)
+    ],
+    2: [
+        { s: "連絡を取る時", j: "〜に連絡する", e: "Contact", d: ["Contract", "Contain", "Confirm"], p: "I'll contact you later." },
+        // ... (ここに2章分20語続く)
+    ]
+};
+
+// --- アプリのロジック ---
+let currentChapter = 0;
+let currentIndex = 0;
+let score = 0;
+let quizPool = [];
+let mistakes = JSON.parse(localStorage.getItem('mistakes') || '[]');
+let history = JSON.parse(localStorage.getItem('history') || '{}');
+
+function showMenu() {
+    document.getElementById('menu-screen').classList.remove('hidden');
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.add('hidden');
+    
+    const list = document.getElementById('chapter-list');
+    list.innerHTML = '';
+    for (let i = 1; i <= 25; i++) {
+        const btn = document.createElement('div');
+        const isDone = history[i];
+        btn.className = `chapter-btn ${isDone ? 'done' : ''}`;
+        btn.innerHTML = `第${i}章 ${isDone ? '<span class="date">済: ' + isDone + '</span>' : ''}`;
+        btn.onclick = () => startChapter(i);
+        list.appendChild(btn);
+    }
+
+    const reviewSection = document.getElementById('review-section');
+    reviewSection.innerHTML = mistakes.length > 0 ? 
+        `<button class="review-btn" onclick="startReview()">復習モード (${mistakes.length}語)</button>` : '';
+}
+
+function startChapter(chapterNum) {
+    if(!allChapters[chapterNum]) return alert("現在データ準備中です！");
+    currentChapter = chapterNum;
+    quizPool = [...allChapters[chapterNum]].sort(() => Math.random() - 0.5);
+    initQuiz();
+}
+
+function startReview() {
+    currentChapter = '復習';
+    quizPool = [...mistakes].sort(() => Math.random() - 0.5);
+    initQuiz();
+}
+
+function initQuiz() {
+    currentIndex = 0;
+    score = 0;
+    document.getElementById('menu-screen').classList.add('hidden');
+    document.getElementById('quiz-screen').classList.remove('hidden');
+    loadQuestion();
+}
+
+function loadQuestion() {
+    const q = quizPool[currentIndex];
+    document.getElementById('current-info').innerText = currentChapter === '復習' ? '復習モード' : `Chapter ${currentChapter}`;
+    document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${quizPool.length}`;
+    document.getElementById('sit').innerText = q.s;
+    document.getElementById('jp').innerText = q.j;
+    document.getElementById('fb').classList.remove('show');
+    
+    const opts = document.getElementById('opts');
+    opts.innerHTML = '';
+    const choices = [q.e, ...q.d].sort(() => Math.random() - 0.5);
+    choices.forEach(o => {
+        const b = document.createElement('button');
+        b.className = 'opt-btn'; b.innerText = o;
+        b.onclick = () => checkAnswer(o, q.e, b);
+        opts.appendChild(b);
+    });
+}
+
+function checkAnswer(selected, correct, btn) {
+    const isCorrect = selected === correct;
+    const q = quizPool[currentIndex];
+    
+    if (isCorrect) {
+        score++;
+        btn.style.borderColor = 'var(--success)';
+        btn.style.backgroundColor = '#F6FFF9';
+        // 正解したら復習リストから削除
+        mistakes = mistakes.filter(m => m.e !== q.e);
+    } else {
+        btn.style.borderColor = 'var(--error)';
+        btn.style.backgroundColor = '#FFF6F6';
+        // 間違えたら復習リストへ（重複なし）
+        if (!mistakes.some(m => m.e === q.e)) mistakes.push(q);
+    }
+    localStorage.setItem('mistakes', JSON.stringify(mistakes));
+
+    document.getElementById('res').innerText = isCorrect ? "⭕ 正解！" : "❌ 正解は " + correct;
+    document.getElementById('res').style.color = isCorrect ? 'var(--success)' : 'var(--error)';
+    document.getElementById('phrase').innerText = q.p;
+    document.getElementById('fb').classList.add('show');
+    document.querySelectorAll('.opt-btn').forEach(b => b.onclick = null); // 連打防止
+}
+
+function nextQuestion() {
+    currentIndex++;
+    if (currentIndex < quizPool.length) {
+        loadQuestion();
+    } else {
+        finishChapter();
+    }
+}
+
+function finishChapter() {
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.remove('hidden');
+    document.getElementById('final-score').innerText = `${score} / ${quizPool.length}`;
+    
+    if (currentChapter !== '復習') {
+        const today = new Date().toLocaleDateString();
+        history[currentChapter] = today;
+        localStorage.setItem('history', JSON.stringify(history));
+    }
+}
+
+function speakCurrent() {
+    const u = new SpeechSynthesisUtterance(quizPool[currentIndex].p);
+    u.lang = 'en-US'; u.rate = 0.9;
+    speechSynthesis.speak(u);
+}
+
+showMenu();
+</script>
+</body>
+</html>
