@@ -8,6 +8,7 @@
     <style>
         :root {
             --primary: #6366f1;
+            --random-grad: linear-gradient(135deg, #f59e0b, #ef4444);
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #1e293b;
@@ -35,13 +36,22 @@
         }
         #main-screen { width: 100%; display: flex; flex-direction: column; align-items: center; }
         .container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 3rem; }
+        
+        /* 特別なランダムボタンのスタイル */
+        .random-card {
+            background: var(--random-grad) !important;
+            color: white !important;
+            border: none !important;
+            font-weight: bold;
+        }
+        .random-card p { color: #ffe4e6 !important; }
+
         .chapter-card {
             background: var(--card); padding: 1.2rem; border-radius: 12px; text-align: center;
             cursor: pointer; border: 2px solid #e2e8f0; transition: 0.2s;
         }
         .chapter-card:hover { border-color: var(--primary); transform: scale(1.02); }
 
-        /* ゲーム画面 */
         #game-screen {
             display: none; width: 100%; max-width: 500px;
             flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box;
@@ -59,19 +69,28 @@
         .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
         .option-btn {
             padding: 1rem; border: 2px solid #e2e8f0; border-radius: 12px;
-            background: white; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: 0.2s;
+            background: white; cursor: pointer; font-size: 1.1rem; font-weight: bold;
         }
-        .correct { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
-        .wrong { background: var(--error) !important; color: white !important; border-color: var(--error) !important; }
+        .correct { background: var(--success) !important; color: white !important; }
+        .wrong { background: var(--error) !important; color: white !important; }
 
         /* 解説エリア */
         #explanation {
             display: none; width: 100%; background: #e0e7ff; padding: 1.5rem;
             border-radius: 15px; margin-top: 1.5rem; text-align: left; box-sizing: border-box;
         }
-        .exp-title { font-weight: bold; color: var(--primary); font-size: 1.2rem; margin-bottom: 0.5rem; }
+        .exp-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .exp-title { font-weight: bold; color: var(--primary); font-size: 1.2rem; }
         
-        /* 下部ナビゲーション */
+        /* 音声再生ボタン */
+        .voice-btn {
+            background: white; border: 2px solid var(--primary); color: var(--primary);
+            width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            flex-shrink: 0; transition: 0.2s;
+        }
+        .voice-btn:active { transform: scale(0.9); background: var(--primary); color: white; }
+
         .footer-nav { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 1rem; }
         .next-btn { 
             display: none; width: 100%; padding: 1rem; background: var(--primary); 
@@ -92,21 +111,27 @@
     </div>
 
     <div id="game-screen">
-        <div class="back-home" onclick="location.reload()">◀ チャプター選択に戻る</div>
+        <div class="back-home" onclick="location.reload()">◀ 戻る</div>
         <div id="progress-text" style="font-weight: bold; margin-bottom: 10px;">1 / 20</div>
         
         <div class="quiz-container">
             <div class="q-label">この意味になる英単語は？</div>
-            <div id="q-word" class="word-display">日本語の問題文</div>
-            <div id="q-sentence" class="sentence-display">例文（穴埋め）</div>
+            <div id="q-word" class="word-display"></div>
+            <div id="q-sentence" class="sentence-display"></div>
             
             <div id="options" class="options-grid"></div>
 
             <div id="explanation">
-                <div class="exp-title">正解：<span id="exp-correct-word"></span></div>
-                <div id="exp-meaning" style="margin-bottom: 10px; font-weight: bold;"></div>
-                <div style="font-size: 0.9rem; color: #64748b;">例文訳：</div>
-                <div id="exp-full-sentence"></div>
+                <div class="exp-row">
+                    <div>
+                        <div class="exp-title">正解：<span id="exp-correct-word"></span></div>
+                        <div id="exp-meaning" style="font-weight: bold;"></div>
+                    </div>
+                    <button class="voice-btn" onclick="playVoice()" title="音声を再生">🔊</button>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #c7d2fe; margin: 10px 0;">
+                <div style="font-size: 0.8rem; color: #64748b;">例文：</div>
+                <div id="exp-full-sentence" style="font-weight: 500; margin-bottom: 5px;"></div>
             </div>
         </div>
 
@@ -123,6 +148,15 @@
 
         window.onload = function() {
             const list = document.getElementById('chapter-list');
+            
+            // 1. ランダム特訓ボタンを追加
+            const randomCard = document.createElement('div');
+            randomCard.className = 'chapter-card random-card';
+            randomCard.onclick = startRandomMode;
+            randomCard.innerHTML = `<h3>🔥 ランダム特訓</h3><p>全章から20問を抽出</p>`;
+            list.appendChild(randomCard);
+
+            // 2. チャプターボタンを追加
             if (typeof wordData !== 'undefined') {
                 for (let i = 1; i <= 25; i++) {
                     const card = document.createElement('div');
@@ -131,13 +165,25 @@
                     card.innerHTML = `<h3>Chapter ${i}</h3><p>20 Words</p>`;
                     list.appendChild(card);
                 }
-            } else {
-                list.innerHTML = "<p style='color:red;'>data.jsが読み込めません</p>";
             }
         };
 
+        // 全データから20問ランダム抽出
+        function startRandomMode() {
+            let allPool = [];
+            for (let i = 1; i <= 25; i++) {
+                if (wordData[i]) allPool = allPool.concat(wordData[i]);
+            }
+            currentWords = allPool.sort(() => Math.random() - 0.5).slice(0, 20);
+            initGame();
+        }
+
         function startChapter(id) {
             currentWords = wordData[id];
+            initGame();
+        }
+
+        function initGame() {
             currentIndex = 0;
             score = 0;
             document.getElementById('main-screen').style.display = 'none';
@@ -148,23 +194,16 @@
         function showQuestion() {
             const q = currentWords[currentIndex];
             document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${currentWords.length}`;
-            
-            // 問題文（日本語 s）を表示
             document.getElementById('q-word').innerText = q.s; 
-            
-            // 例文の穴埋め処理 (正解の単語 e を □□□ に置換)
             const maskedSentence = q.p.replace(new RegExp(q.e, 'gi'), " □□□ ");
             document.getElementById('q-sentence').innerText = maskedSentence;
 
-            // UIリセット
             document.getElementById('explanation').style.display = 'none';
             document.getElementById('next-btn').style.display = 'none';
             document.getElementById('prev-btn').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
             
             const optDiv = document.getElementById('options');
             optDiv.innerHTML = '';
-
-            // 全て英語の選択肢を作成
             const choices = [q.e, ...q.d].sort(() => Math.random() - 0.5);
             choices.forEach(choice => {
                 const btn = document.createElement('button');
@@ -178,41 +217,36 @@
         function checkAnswer(btn, choice, q) {
             const btns = document.querySelectorAll('.option-btn');
             btns.forEach(b => b.disabled = true);
+            if (choice === q.e) { btn.classList.add('correct'); score++; }
+            else { btn.classList.add('wrong'); btns.forEach(b => { if(b.innerText === q.e) b.classList.add('correct'); }); }
 
-            if (choice === q.e) {
-                btn.classList.add('correct');
-                score++;
-            } else {
-                btn.classList.add('wrong');
-                btns.forEach(b => { if(b.innerText === q.e) b.classList.add('correct'); });
-            }
-
-            // 解説を表示
             document.getElementById('exp-correct-word').innerText = q.e;
             document.getElementById('exp-meaning').innerText = q.j;
             document.getElementById('exp-full-sentence').innerText = q.p;
             document.getElementById('explanation').style.display = 'block';
             document.getElementById('next-btn').style.display = 'block';
-            
-            // 画面を一番下までスクロールして「次へ」ボタンを見せる
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+            // 自動再生（電車内を考慮して、必要なければこの一行を消してください）
+            // playVoice(); 
+        }
+
+        // 音声再生関数
+        function playVoice() {
+            const text = currentWords[currentIndex].p;
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'en-US'; // 英語(米)
+            uttr.rate = 0.9;     // 少しゆっくり
+            window.speechSynthesis.speak(uttr);
         }
 
         function nextQuestion() {
             currentIndex++;
-            if (currentIndex < currentWords.length) {
-                showQuestion();
-            } else {
-                alert(`Chapter クリア！\nスコア: ${score} / ${currentWords.length}`);
-                location.reload();
-            }
+            if (currentIndex < currentWords.length) showQuestion();
+            else { alert(`クリア！ スコア: ${score} / ${currentWords.length}`); location.reload(); }
         }
 
         function prevQuestion() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                showQuestion();
-            }
+            if (currentIndex > 0) { currentIndex--; showQuestion(); }
         }
     </script>
 </body>
