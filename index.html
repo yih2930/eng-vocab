@@ -37,10 +37,10 @@
             flex-direction: column;
             align-items: center;
         }
-        /* 縦一列・中央寄せのスタイル */
+        /* 縦一列・中央寄せ */
         .container {
             width: 90%;
-            max-width: 400px; /* 横幅を絞って中央に寄せる */
+            max-width: 400px; 
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -56,14 +56,10 @@
             border: 2px solid #e2e8f0;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .chapter-card:hover {
-            transform: scale(1.02);
-            border-color: var(--primary);
-        }
+        .chapter-card:hover { transform: scale(1.02); border-color: var(--primary); }
         .chapter-card h3 { margin: 0; font-size: 1.1rem; }
         .chapter-card p { margin: 5px 0 0; font-size: 0.8rem; color: #64748b; }
 
-        /* ゲーム画面 */
         #game-screen {
             display: none;
             position: fixed;
@@ -87,11 +83,7 @@
         }
         .word-display { font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; color: var(--primary); }
         .sentence-display { font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; line-height: 1.4; }
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr; /* クイズの選択肢も縦一列の方が押しやすい */
-            gap: 10px;
-        }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .option-btn {
             padding: 1rem;
             border: 2px solid #e2e8f0;
@@ -108,39 +100,34 @@
     </style>
 </head>
 <body>
-
     <div id="main-screen">
-        <div class="header">
-            <h1>English Quest 500</h1>
-        </div>
+        <div class="header"><h1>English Quest 500</h1></div>
         <div class="container" id="chapter-list"></div>
     </div>
-
     <div id="game-screen">
         <div class="nav-btns">
             <button class="back-btn" onclick="location.reload()">◀ 戻る</button>
             <div id="progress-text" style="font-size: 1.2rem; font-weight: bold; color: var(--primary);">1 / 20</div>
         </div>
         <div class="quiz-container">
-            <div class="word-display" id="q-word"></div>
-            <div class="sentence-display" id="q-sentence"></div>
-            <div class="options-grid" id="options"></div>
+            <div id="q-word" class="word-display"></div>
+            <div id="q-sentence" class="sentence-display"></div>
+            <div id="options" class="options-grid"></div>
         </div>
     </div>
-
     <script>
         let currentWords = [];
         let currentIndex = 0;
         let score = 0;
 
         window.onload = function() {
-            const chapterList = document.getElementById('chapter-list');
+            const list = document.getElementById('chapter-list');
             for (let i = 1; i <= 25; i++) {
                 const card = document.createElement('div');
                 card.className = 'chapter-card';
                 card.onclick = () => startChapter(i);
                 card.innerHTML = `<h3>Chapter ${i}</h3><p>20 Words</p>`;
-                chapterList.appendChild(card);
+                list.appendChild(card);
             }
         };
 
@@ -153,7 +140,7 @@
                 document.getElementById('game-screen').style.display = 'flex';
                 showQuestion();
             } else {
-                alert('データが見つかりません。リロードしてください。');
+                alert('データが見つかりません。data.jsの修正箇所（20章の終わり）を確認してください。');
             }
         }
 
@@ -162,25 +149,27 @@
             document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${currentWords.length}`;
             document.getElementById('q-word').innerText = q.e; 
             document.getElementById('q-sentence').innerText = q.p; 
-            
-            const optionsDiv = document.getElementById('options');
-            optionsDiv.innerHTML = '';
+            const optDiv = document.getElementById('options');
+            optDiv.innerHTML = '';
             const choices = [q.s, ...q.d].sort(() => Math.random() - 0.5);
-            
             choices.forEach(choice => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerText = choice;
                 btn.onclick = () => {
-                    const buttons = document.querySelectorAll('.option-btn');
-                    buttons.forEach(b => b.disabled = true);
-                    if (choice === q.s) {
-                        btn.classList.add('correct');
-                        score++;
-                    } else {
-                        btn.classList.add('wrong');
-                        buttons.forEach(b => { if (b.innerText === q.s) b.classList.add('correct'); });
-                    }
+                    const btns = document.querySelectorAll('.option-btn');
+                    btns.forEach(b => b.disabled = true);
+                    if (choice === q.s) { btn.classList.add('correct'); score++; }
+                    else { btn.classList.add('wrong'); btns.forEach(b => { if(b.innerText === q.s) b.classList.add('correct'); }); }
                     setTimeout(() => {
                         currentIndex++;
                         if (currentIndex < currentWords.length) showQuestion();
+                        else { alert(`Chapter クリア！\nスコア: ${score} / 20`); location.reload(); }
+                    }, 1000);
+                };
+                optDiv.appendChild(btn);
+            });
+        }
+    </script>
+</body>
+</html>
