@@ -194,7 +194,7 @@ const wordData = {
         { s: "疑う", j: "〜を疑う", e: "Doubt", d: ["Drag", "Draw", "Dream"], p: "I doubt it." },
         { s: "引きずる", j: "〜を引きずる", e: "Drag", d: ["Doubt", "Draw", "Dream"], p: "Drag and drop." },
         { s: "描く・引く", j: "〜を描く、引く", e: "Draw", d: ["Doubt", "Drag", "Dream"], p: "Draw a map." }
-
+    ],
         10: [
         { s: "落とす", j: "〜を落とす", e: "Drop", d: ["Drink", "Drive", "Dry"], p: "Drop the phone." },
         { s: "乾かす", j: "乾いた、〜を乾かす", e: "Dry", d: ["Drink", "Drive", "Drop"], p: "Dry the hair." },
@@ -217,7 +217,7 @@ const wordData = {
         { s: "大きくする", j: "〜を拡大する", e: "Enlarge", d: ["Enjoy", "Enlighten", "Ensure"], p: "Enlarge the map." },
         { s: "確実にする", j: "〜を確実にする", e: "Ensure", d: ["Enjoy", "Enlarge", "Enlighten"], p: "Ensure safety." }
     ],
-    11: [
+        11: [
         { s: "入る", j: "〜に入る", e: "Enter", d: ["Entertain", "Envy", "Equal"], p: "Enter the room." },
         { s: "楽しませる", j: "〜を楽しまる", e: "Entertain", d: ["Enter", "Envy", "Equal"], p: "Entertain guests." },
         { s: "うらやむ", j: "〜をうらやむ", e: "Envy", d: ["Enter", "Entertain", "Equal"], p: "I envy you." },
@@ -239,7 +239,7 @@ const wordData = {
         { s: "展示する", j: "〜を展示する", e: "Exhibit", d: ["Execute", "Exercise", "Exist"], p: "Exhibit the works." },
         { s: "存在する", j: "存在する", e: "Exist", d: ["Execute", "Exercise", "Exhibit"], p: "Does God exist?" }
     ],
-    12: [
+        12: [
         { s: "広がる", j: "〜を拡大する", e: "Expand", d: ["Expect", "Expel", "Expend"], p: "Expand the business." },
         { s: "期待する", j: "〜を予期する", e: "Expect", d: ["Expand", "Expel", "Expend"], p: "Expect a baby." },
         { s: "追い出す", j: "〜を追放する", e: "Expel", d: ["Expand", "Expect", "Expend"], p: "Expel a student." },
