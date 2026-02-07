@@ -37,20 +37,13 @@
         #main-screen { width: 100%; display: flex; flex-direction: column; align-items: center; }
         .container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 3rem; }
         
-        /* 特別なランダムボタンのスタイル */
-        .random-card {
-            background: var(--random-grad) !important;
-            color: white !important;
-            border: none !important;
-            font-weight: bold;
-        }
-        .random-card p { color: #ffe4e6 !important; }
-
         .chapter-card {
             background: var(--card); padding: 1.2rem; border-radius: 12px; text-align: center;
             cursor: pointer; border: 2px solid #e2e8f0; transition: 0.2s;
         }
         .chapter-card:hover { border-color: var(--primary); transform: scale(1.02); }
+        .random-card { background: var(--random-grad) !important; color: white !important; border: none !important; font-weight: bold; }
+        .random-card p { color: #ffe4e6 !important; }
 
         #game-screen {
             display: none; width: 100%; max-width: 500px;
@@ -60,7 +53,6 @@
             background: white; width: 100%; padding: 2rem; border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; margin-bottom: 1rem;
         }
-        .q-label { font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem; }
         .word-display { font-size: 1.8rem; font-weight: bold; margin-bottom: 1.5rem; color: var(--text); }
         .sentence-display { 
             background: #f1f5f9; padding: 1rem; border-radius: 10px;
@@ -79,17 +71,20 @@
             display: none; width: 100%; background: #e0e7ff; padding: 1.5rem;
             border-radius: 15px; margin-top: 1.5rem; text-align: left; box-sizing: border-box;
         }
-        .exp-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .exp-title { font-weight: bold; color: var(--primary); font-size: 1.2rem; }
+        .exp-main { margin-bottom: 15px; border-bottom: 1px solid #c7d2fe; padding-bottom: 10px; }
+        .exp-title { font-weight: bold; color: var(--primary); font-size: 1.3rem; }
         
-        /* 音声再生ボタン */
+        /* 例文と音声ボタンの横並び */
+        .sentence-row { display: flex; align-items: flex-start; gap: 10px; }
+        .full-sentence-text { font-weight: 500; font-size: 1.05rem; line-height: 1.4; flex: 1; }
+        
         .voice-btn {
-            background: white; border: 2px solid var(--primary); color: var(--primary);
-            width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
-            flex-shrink: 0; transition: 0.2s;
+            background: var(--primary); color: white; border: none;
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+            flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .voice-btn:active { transform: scale(0.9); background: var(--primary); color: white; }
+        .voice-btn:active { transform: scale(0.9); }
 
         .footer-nav { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 1rem; }
         .next-btn { 
@@ -115,23 +110,20 @@
         <div id="progress-text" style="font-weight: bold; margin-bottom: 10px;">1 / 20</div>
         
         <div class="quiz-container">
-            <div class="q-label">この意味になる英単語は？</div>
             <div id="q-word" class="word-display"></div>
             <div id="q-sentence" class="sentence-display"></div>
-            
             <div id="options" class="options-grid"></div>
 
             <div id="explanation">
-                <div class="exp-row">
-                    <div>
-                        <div class="exp-title">正解：<span id="exp-correct-word"></span></div>
-                        <div id="exp-meaning" style="font-weight: bold;"></div>
-                    </div>
+                <div class="exp-main">
+                    <div class="exp-title">正解：<span id="exp-correct-word"></span></div>
+                    <div id="exp-meaning" style="font-weight: bold;"></div>
+                </div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">例文 (タップで再生):</div>
+                <div class="sentence-row">
+                    <div id="exp-full-sentence" class="full-sentence-text"></div>
                     <button class="voice-btn" onclick="playVoice()" title="音声を再生">🔊</button>
                 </div>
-                <hr style="border: 0; border-top: 1px solid #c7d2fe; margin: 10px 0;">
-                <div style="font-size: 0.8rem; color: #64748b;">例文：</div>
-                <div id="exp-full-sentence" style="font-weight: 500; margin-bottom: 5px;"></div>
             </div>
         </div>
 
@@ -148,106 +140,6 @@
 
         window.onload = function() {
             const list = document.getElementById('chapter-list');
-            
-            // 1. ランダム特訓ボタンを追加
             const randomCard = document.createElement('div');
             randomCard.className = 'chapter-card random-card';
-            randomCard.onclick = startRandomMode;
-            randomCard.innerHTML = `<h3>🔥 ランダム特訓</h3><p>全章から20問を抽出</p>`;
-            list.appendChild(randomCard);
-
-            // 2. チャプターボタンを追加
-            if (typeof wordData !== 'undefined') {
-                for (let i = 1; i <= 25; i++) {
-                    const card = document.createElement('div');
-                    card.className = 'chapter-card';
-                    card.onclick = () => startChapter(i);
-                    card.innerHTML = `<h3>Chapter ${i}</h3><p>20 Words</p>`;
-                    list.appendChild(card);
-                }
-            }
-        };
-
-        // 全データから20問ランダム抽出
-        function startRandomMode() {
-            let allPool = [];
-            for (let i = 1; i <= 25; i++) {
-                if (wordData[i]) allPool = allPool.concat(wordData[i]);
-            }
-            currentWords = allPool.sort(() => Math.random() - 0.5).slice(0, 20);
-            initGame();
-        }
-
-        function startChapter(id) {
-            currentWords = wordData[id];
-            initGame();
-        }
-
-        function initGame() {
-            currentIndex = 0;
-            score = 0;
-            document.getElementById('main-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'flex';
-            showQuestion();
-        }
-
-        function showQuestion() {
-            const q = currentWords[currentIndex];
-            document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${currentWords.length}`;
-            document.getElementById('q-word').innerText = q.s; 
-            const maskedSentence = q.p.replace(new RegExp(q.e, 'gi'), " □□□ ");
-            document.getElementById('q-sentence').innerText = maskedSentence;
-
-            document.getElementById('explanation').style.display = 'none';
-            document.getElementById('next-btn').style.display = 'none';
-            document.getElementById('prev-btn').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-            
-            const optDiv = document.getElementById('options');
-            optDiv.innerHTML = '';
-            const choices = [q.e, ...q.d].sort(() => Math.random() - 0.5);
-            choices.forEach(choice => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = choice;
-                btn.onclick = () => checkAnswer(btn, choice, q);
-                optDiv.appendChild(btn);
-            });
-        }
-
-        function checkAnswer(btn, choice, q) {
-            const btns = document.querySelectorAll('.option-btn');
-            btns.forEach(b => b.disabled = true);
-            if (choice === q.e) { btn.classList.add('correct'); score++; }
-            else { btn.classList.add('wrong'); btns.forEach(b => { if(b.innerText === q.e) b.classList.add('correct'); }); }
-
-            document.getElementById('exp-correct-word').innerText = q.e;
-            document.getElementById('exp-meaning').innerText = q.j;
-            document.getElementById('exp-full-sentence').innerText = q.p;
-            document.getElementById('explanation').style.display = 'block';
-            document.getElementById('next-btn').style.display = 'block';
-
-            // 自動再生（電車内を考慮して、必要なければこの一行を消してください）
-            // playVoice(); 
-        }
-
-        // 音声再生関数
-        function playVoice() {
-            const text = currentWords[currentIndex].p;
-            const uttr = new SpeechSynthesisUtterance(text);
-            uttr.lang = 'en-US'; // 英語(米)
-            uttr.rate = 0.9;     // 少しゆっくり
-            window.speechSynthesis.speak(uttr);
-        }
-
-        function nextQuestion() {
-            currentIndex++;
-            if (currentIndex < currentWords.length) showQuestion();
-            else { alert(`クリア！ スコア: ${score} / ${currentWords.length}`); location.reload(); }
-        }
-
-        function prevQuestion() {
-            if (currentIndex > 0) { currentIndex--; showQuestion(); }
-        }
-    </script>
-</body>
-</html>
+            random
